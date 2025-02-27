@@ -16,11 +16,12 @@ const CurrentConfig = {
   rpc: {
     local: 'http://localhost:8545',
     mainnet: 'https://eth.llamarpc.com',
+    //mainnet: 'https://1rpc.io/sepolia',
   },
   wallet: {
-    address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+    address: '0x90dF5A3EDE13Ee1D090573460e13B0BFD8aa9708',
     privateKey:
-      '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+      '0x7cd6c933593b0e45586cf0af345fb7465be456eec7ee7da811975557668fd33c',
   },
   tokens: {
     in: WETH_TOKEN,
