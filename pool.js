@@ -3,22 +3,19 @@ const { computePoolAddress } = require('@uniswap/v3-sdk');
 const { ethers } = require('ethers');
 
 const { CurrentConfig } = require('./config.js');
-const { POOL_FACTORY_CONTRACT_ADDRESS } = require('./constants.js');
+const { POOL_FACTORY_CONTRACT_ADDRESS_SEPOLIA,POOL_FACTORY_CONTRACT_ADDRESS } = require('./constants.js');
 const { getProvider } = require('./providers.js');
 
-async function getPoolInfo() {
-  const provider = getProvider();
-  if (!provider) {
-    throw new Error('No provider');
-  }
-
+async function getPoolInfo(provider,inToken,outToken,chainId = 1) {
   const currentPoolAddress = computePoolAddress({
-    factoryAddress: POOL_FACTORY_CONTRACT_ADDRESS,
-    tokenA: CurrentConfig.tokens.in,
-    tokenB: CurrentConfig.tokens.out,
+    factoryAddress: chainId == 1? POOL_FACTORY_CONTRACT_ADDRESS: POOL_FACTORY_CONTRACT_ADDRESS_SEPOLIA,
+    tokenA: inToken,
+    tokenB: outToken,
     fee: CurrentConfig.tokens.poolFee,
+    chainId: chainId,
   });
-
+  console.log(chainId,inToken,outToken, CurrentConfig.tokens.poolFee);
+console.log('currentPoolAddress:', currentPoolAddress);
   const poolContract = new ethers.Contract(
     currentPoolAddress,
     IUniswapV3PoolABI.abi,

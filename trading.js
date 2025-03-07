@@ -13,15 +13,20 @@ const {
 const { MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS } = require('./constants');
 const { getPoolInfo } = require('./pool');
 const {
-  getProvider,
+  getMainnetProvider,
   getWalletAddress,
   sendTransaction,
   TransactionState,
 } = require('./providers');
 const { fromReadableAmount } = require('./utils');
+const { Trade : RouterTrade }= require('@uniswap/router-sdk') ;
 
-async function createTrade() {
-  const poolInfo = await getPoolInfo();
+async function createTrade(chainId) {
+  const provider = getMainnetProvider();
+  if (!provider) {
+    throw new Error('No provider');
+  }
+  const poolInfo = await getPoolInfo(provider,CurrentConfig.tokens.in,CurrentConfig.tokens.out,chainId);
 
   const pool = new Pool(
     CurrentConfig.tokens.in,
@@ -38,7 +43,17 @@ async function createTrade() {
     CurrentConfig.tokens.out
   );
 
-  const amountOut = await getOutputQuote(swapRoute);
+  // const rt =await RouterTrade.fromRoute(swapRoute, CurrencyAmount.fromRawAmount(
+  //   CurrentConfig.tokens.in,
+  //   fromReadableAmount(
+  //     CurrentConfig.tokens.amountIn,
+  //     CurrentConfig.tokens.in.decimals
+  //   ).toString()
+  // ), TradeType.EXACT_INPUT);
+
+
+
+  const amountOut = await getOutputQuote(provider,QUOTER_CONTRACT_ADDRESS,CurrentConfig.tokens.in,CurrentConfig.tokens.amountIn, swapRoute);
 
   const uncheckedTrade = Trade.createUncheckedTrade({
     route: swapRoute,
@@ -93,20 +108,14 @@ async function executeTrade(trade) {
   return await sendTransaction(tx);
 }
 
-async function getOutputQuote(route) {
-  const provider = getProvider();
-
-  if (!provider) {
-    throw new Error('Provider required to get pool state');
-  }
-
+async function getOutputQuote(provider,quoteAddress,inToken,amountIn,route) {
   const { calldata } = await SwapQuoter.quoteCallParameters(
     route,
     CurrencyAmount.fromRawAmount(
-      CurrentConfig.tokens.in,
+      inToken,
       fromReadableAmount(
-        CurrentConfig.tokens.amountIn,
-        CurrentConfig.tokens.in.decimals
+        amountIn,
+        inToken.decimals
       ).toString()
     ),
     TradeType.EXACT_INPUT,
@@ -116,7 +125,7 @@ async function getOutputQuote(route) {
   );
 
   const quoteCallReturnData = await provider.call({
-    to: QUOTER_CONTRACT_ADDRESS,
+    to: quoteAddress,
     data: calldata,
   });
 

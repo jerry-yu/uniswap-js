@@ -10,7 +10,7 @@ const wallet = createWallet();
 const browserExtensionProvider = createBrowserExtensionProvider();
 let walletExtensionAddress = null;
 
-// 交易状态枚举
+
 const TransactionState = {
   Failed: 'Failed',
   New: 'New',
@@ -19,7 +19,7 @@ const TransactionState = {
   Sent: 'Sent',
 };
 
-// Provider 和 Wallet 相关函数
+
 function getMainnetProvider() {
   return mainnetProvider;
 }
@@ -60,7 +60,6 @@ async function connectBrowserExtensionWallet() {
   return walletExtensionAddress;
 }
 
-// 内部方法
 function createWallet() {
   let provider = mainnetProvider;
   if (CurrentConfig.env === Environment.LOCAL) {
@@ -78,7 +77,6 @@ function createBrowserExtensionProvider() {
   }
 }
 
-// 通过浏览器扩展交易
 async function sendTransactionViaExtension(transaction) {
   try {
     const receipt = await browserExtensionProvider?.send('eth_sendTransaction', [transaction]);
@@ -116,7 +114,6 @@ async function sendTransactionViaWallet(transaction) {
   return receipt ? TransactionState.Sent : TransactionState.Failed;
 }
 
-// 导出模块
 module.exports = {
   getMainnetProvider,
   getProvider,

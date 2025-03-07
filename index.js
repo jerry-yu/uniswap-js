@@ -4,25 +4,17 @@ const { ethers } = require('ethers');
 const { CurrentConfig } = require('./config.js');
 const { ERC20_ABI, SWAP_ROUTER_ADDRESS, TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER } = require('./constants');
 const { mainprovider } = require('./providers');
-const { fromReadableAmount } = require('./utils');
+const { fromReadableAmount ,exec} = require('./utils');
 
 const { Currency, CurrencyAmount, Percent, Token, TradeType } = require('@uniswap/sdk-core');
 const { Pool, Route, SwapOptions, SwapQuoter, SwapRouter, Trade } = require('@uniswap/v3-sdk');
 
-const childProcess = require('child_process');
+const { v4Main } = require('./v4');
+const {getFullTickData,searchPools} = require('./tick');
 
-async function exec(command, options) {
-    const arr = await new Promise(resolve => {
-        childProcess.exec(command, options || {}, (error, stdout, stderr) => {
-            resolve([error, stdout, stderr]);
-        });
-    });
 
-    return arr;
-};
-
-async function main() {
-    const trade = await createTrade();
+async function v3Trade() {
+    const trade = await createTrade(1);
     console.log(trade.inputAmount, trade.outputAmount);
     for (const swap of trade.swaps) {
         console.log(swap.route.pools);
@@ -108,6 +100,17 @@ async function main() {
     );
     console.log('error:', error2);
     console.log('stdout:', stdout2);
+}
+
+async function main() {
+
+    
+    //await getFullTickData('0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8').then(ticks => console.log(ticks));
+    //await v3Trade();
+    //await v4Main();
+    const tokens = ['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', '0x6b175474e89094c44da98b954eedeac495271d0f']; // WETH 和 DAI
+    const poolId = '0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8'; // 示例池地址
+    searchPools(tokens, null);
 }
 
 main();
