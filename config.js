@@ -1,7 +1,7 @@
 const { Token } = require('@uniswap/sdk-core');
 const { FeeAmount } = require('@uniswap/v3-sdk');
 
-const { USDC_TOKEN, WETH_TOKEN } = require('./constants.js');
+const { USDC_TOKEN, WETH_TOKEN,WBTC_TOKEN } = require('./constants.js');
 
 // Sets if the example should run locally or on chain
 const Environment = {
@@ -26,7 +26,7 @@ const CurrentConfig = {
   tokens: {
     in: WETH_TOKEN,
     amountIn: 1,
-    out: USDC_TOKEN,
+    out: WBTC_TOKEN,
     poolFee: FeeAmount.MEDIUM,
   },
 };

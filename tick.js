@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const subgraphUrl = 'https://gateway.thegraph.com/api/?/subgraphs/id/5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV';
+const subgraphUrl = 'https://gateway.thegraph.com/api/?/subgraphs/id/?';
 async function getTickDataFromSubgraph(poolAddress, skip) {
   const ticksQuery = JSON.stringify({
     query: `{
@@ -27,7 +27,6 @@ async function getTickDataFromSubgraph(poolAddress, skip) {
       },
     }
   );
-  console.log("---------------------------",response.data)
   return response.data.data.ticks;
 }
 
@@ -110,7 +109,7 @@ async function searchPools(tokens, id) {
       },
     });
     const data = response.data.data;
-    console.log('Pool search results:', data);
+    console.log('Pool search results:', JSON.stringify(data));
     return data;
   } catch (error) {
     console.error('Error fetching pools:', error);
@@ -118,5 +117,112 @@ async function searchPools(tokens, id) {
   }
 }
 
-exports.getFullTickData = getFullTickData;
-exports.searchPools = searchPools;
+
+const TOKEN_POOLS = `
+  query TokenPools($skip: Int!, $t0: String!, $t1: String!) {
+    pools(where: {
+      token0_in: [$t0],
+      token1_in: [$t1]
+    }, first: 10, skip: $skip, orderBy: liquidity, orderDirection: "desc") {
+      id
+      feeTier
+      token0 {
+        id
+        symbol
+        name
+      }
+      token1 {
+        id
+        symbol
+        name
+      }
+      liquidity
+      sqrtPrice
+      token0Price
+      token1Price
+      tick
+      volumeUSD
+      totalValueLockedUSD
+    }
+  }
+`;
+
+function combineTokens(tokens) {
+  const result = [];
+  const arr = tokens.map(token => token.toLowerCase());
+
+  for (let i = 0; i < arr.length - 1; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      result.push([arr[i], arr[j]]);
+    }
+  }
+  return result;
+}
+
+// Function to fetch all pools
+async function getTokenPools(tokens) {
+  const tokenPairs = combineTokens(tokens);
+  let allPools = [];
+  let skip = 0;
+
+  for (const [token0, token1] of tokenPairs) {
+    while (true) {
+      try {
+        const response = await axios.post(subgraphUrl, {
+          query: TOKEN_POOLS,
+          variables: { skip, t0: token0, t1: token1 }
+        }, {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const pools = response.data.data.pools;
+        allPools = allPools.concat(pools);
+        if (pools.length < 1000) break; // Exit if less than batch size
+        skip += 1000;
+      } catch (error) {
+        console.error('Error fetching pools:', error);
+        break;
+      }
+    }
+  }
+
+  console.log('Pools:', allPools);
+  return allPools;
+}
+
+
+const TestQuery = `
+  query {
+  __type(name: "Tick_filter") {
+    name
+    kind
+    inputFields {
+      name
+      type {
+        name
+        kind
+      }
+    }
+  }
+}
+`;
+async function testQuery() {
+    try {
+      const response = await axios.post(subgraphUrl, {
+        query: TestQuery,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = response.data.data;
+      console.log('data:', JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('Error Testing:', error);
+
+    }
+}
+
+module.exports = {
+  getFullTickData,
+  searchPools,
+  getTokenPools,
+  testQuery
+};

@@ -31,6 +31,14 @@ const USDC_TOKEN = new Token(
   'USD//C'
 );
 
+const WBTC_TOKEN = new Token(
+  SupportedChainId.MAINNET,
+  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+  8,
+  'WBTC',
+  'Wrapped Bitcoin'
+);
+
 // ABI's
 const ERC20_ABI = [
   // Read-Only Functions
@@ -66,6 +74,7 @@ module.exports = {
   WETH_CONTRACT_ADDRESS,
   WETH_TOKEN,
   USDC_TOKEN,
+  WBTC_TOKEN,
   ERC20_ABI,
   WETH_ABI,
   MAX_FEE_PER_GAS,

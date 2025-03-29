@@ -10,7 +10,7 @@ const { Currency, CurrencyAmount, Percent, Token, TradeType } = require('@uniswa
 const { Pool, Route, SwapOptions, SwapQuoter, SwapRouter, Trade } = require('@uniswap/v3-sdk');
 
 const { v4Main } = require('./v4');
-const {getFullTickData,searchPools} = require('./tick');
+const {getFullTickData,searchPools,getTokenPools,testQuery} = require('./tick');
 
 
 async function v3Trade() {
@@ -108,9 +108,10 @@ async function main() {
     //await getFullTickData('0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8').then(ticks => console.log(ticks));
     //await v3Trade();
     //await v4Main();
-    const tokens = ['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', '0x6b175474e89094c44da98b954eedeac495271d0f']; // WETH 和 DAI
-    const poolId = '0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8'; // 示例池地址
-    searchPools(tokens, null);
+    //const tokens = ['0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'];
+    //searchPools(tokens, null);
+    //await testQuery();
+    await getTokenPools(['0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599','0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48','0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2']); 
 }
 
 main();

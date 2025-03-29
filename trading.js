@@ -9,6 +9,7 @@ const {
   QUOTER_CONTRACT_ADDRESS,
   SWAP_ROUTER_ADDRESS,
   TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER,
+  USDC_TOKEN,
 } = require('./constants');
 const { MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS } = require('./constants');
 const { getPoolInfo } = require('./pool');
@@ -26,19 +27,34 @@ async function createTrade(chainId) {
   if (!provider) {
     throw new Error('No provider');
   }
-  const poolInfo = await getPoolInfo(provider,CurrentConfig.tokens.in,CurrentConfig.tokens.out,chainId);
+  const poolInfo1 = await getPoolInfo(provider,CurrentConfig.tokens.in,USDC_TOKEN,chainId);
+  const poolInfo2 = await getPoolInfo(provider,USDC_TOKEN,CurrentConfig.tokens.out,chainId);
 
-  const pool = new Pool(
+  console.log('poolInfo1:', poolInfo1);
+  console.log('poolInfo2:', poolInfo2);
+  const pool1 = new Pool(
     CurrentConfig.tokens.in,
-    CurrentConfig.tokens.out,
+    USDC_TOKEN,
     CurrentConfig.tokens.poolFee,
-    poolInfo.sqrtPriceX96.toString(),
-    poolInfo.liquidity.toString(),
-    poolInfo.tick
+    poolInfo1.sqrtPriceX96.toString(),
+    poolInfo1.liquidity.toString(),
+    poolInfo1.tick
   );
 
+  const pool2 = new Pool(
+    USDC_TOKEN,
+    CurrentConfig.tokens.out,
+    CurrentConfig.tokens.poolFee,
+    poolInfo2.sqrtPriceX96.toString(),
+    poolInfo2.liquidity.toString(),
+    poolInfo2.tick
+  );
+
+  console.log('pool1:', pool1);
+  console.log('pool2:', pool2);
+
   const swapRoute = new Route(
-    [pool],
+    [pool1, pool2],
     CurrentConfig.tokens.in,
     CurrentConfig.tokens.out
   );
@@ -54,7 +70,6 @@ async function createTrade(chainId) {
 
 
   const amountOut = await getOutputQuote(provider,QUOTER_CONTRACT_ADDRESS,CurrentConfig.tokens.in,CurrentConfig.tokens.amountIn, swapRoute);
-
   const uncheckedTrade = Trade.createUncheckedTrade({
     route: swapRoute,
     inputAmount: CurrencyAmount.fromRawAmount(
@@ -70,6 +85,14 @@ async function createTrade(chainId) {
     ),
     tradeType: TradeType.EXACT_INPUT,
   });
+
+  // const uncheckedTrade = Trade.fromRoute(swapRoute, CurrencyAmount.fromRawAmount(
+  //   CurrentConfig.tokens.in,
+  //   fromReadableAmount(
+  //     CurrentConfig.tokens.amountIn,
+  //     CurrentConfig.tokens.in.decimals
+  //   ).toString()
+  // ), TradeType.EXACT_INPUT);
 
   return uncheckedTrade;
 }
@@ -123,7 +146,7 @@ async function getOutputQuote(provider,quoteAddress,inToken,amountIn,route) {
       useQuoterV2: true,
     }
   );
-
+console.log("---------------------",calldata);
   const quoteCallReturnData = await provider.call({
     to: quoteAddress,
     data: calldata,
